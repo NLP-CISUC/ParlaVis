@@ -294,7 +294,7 @@ else:
     ficheiro_a_carregar = FICHEIROS_ANO[ano_selecionado]
 
     try:
-        with st.spinner(txt['spinner_individual']):
+        with st.spinner(txt.get('spinner_individual', 'A processar os dados...')):
             df = load_data(ficheiro_a_carregar)
         
         if 'Speaker' in df.columns:
@@ -423,8 +423,8 @@ else:
                         return df_concat
                     return pd.DataFrame()
 
-            with st.spinner(txt['spinner_global']):
-                 df_global = carregar_todos_os_anos()
+            with st.spinner(txt.get('spinner_global', 'A analisar todos os anos...')):
+                df_global = carregar_todos_os_anos()
 
             if not df_global.empty:
                 col_g1, col_g2 = st.columns(2)
