@@ -7,6 +7,15 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Análise de Debates Parlamentares", layout="wide", initial_sidebar_state="collapsed")
 
+from idiomas import DICIONARIO
+
+if 'idioma' not in st.session_state:
+    st.session_state.idioma = 'PT'
+
+# Atalhos práticos para não escreveres nomes gigantes o tempo todo
+lang = st.session_state.idioma
+txt = DICIONARIO[lang]
+
 if 'explorar' not in st.session_state:
     st.session_state.explorar = False
 if 'ano_temp' not in st.session_state:
@@ -120,47 +129,62 @@ def load_data(file_name):
 
 # PÁGINA INICIAL - qd abro o site (com uma explicação e tal)
 if not st.session_state.explorar:
-    st.markdown("""
+
+    col_vazia, col_lang = st.columns([8, 2])
+    with col_lang:
+        texto_botao_lang = "🇺🇸 English" if lang == 'PT' else "🇵🇹 Português"
+        if st.button(texto_botao_lang, use_container_width=True):
+            st.session_state.idioma = 'EN' if lang == 'PT' else 'PT'
+            st.rerun()
+
+    # Ajuste milimétrico para cada idioma
+    margem_subtitulo = "-15px" if lang == 'PT' else "50px"
+
+    # Nota o 'f' antes das aspas para permitir a injeção da variável
+    st.markdown(f"""
     <style>
-        .stApp, [data-testid="stAppViewContainer"] { background-color: #f1f5f9 !important; }
-        header[data-testid="stHeader"] { display: none !important; }
-        .block-container {
+        .stApp, [data-testid="stAppViewContainer"] {{ background-color: #f1f5f9 !important; }}
+        header[data-testid="stHeader"] {{ display: none !important; }}
+        .block-container {{
             background: #ffffff !important; border-radius: 24px !important; padding: 4rem 4rem !important;
             box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08) !important; border: 1px solid rgba(226, 232, 240, 0.8) !important;
             max-width: 950px !important; margin-top: 8vh !important; margin-bottom: 8vh !important;
-        }
-        div[data-testid="stSelectbox"], div[data-testid="stButton"] { max-width: 350px !important; margin: 0 auto !important; }
-        div[data-testid="stButton"] { margin-top: 1.5rem !important; }
-        .landing-title {
+        }}
+        div[data-testid="stSelectbox"], div[data-testid="stButton"] {{ max-width: 350px !important; margin: 0 auto !important; }}
+        div[data-testid="stButton"] {{ margin-top: 1.5rem !important; }}
+        
+        .landing-title {{
             font-size: 3.6rem !important; font-weight: 900 !important; letter-spacing: -2px !important; margin: 0px auto 0px auto !important;
             padding: 0px !important; background: linear-gradient(135deg, #0f172a 0%, #3B82F6 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1 !important; text-align: center;
-        }
-        .landing-subtitle {
+        }}
+        
+        /* Aqui entra a margem dinâmica calculada acima */
+        .landing-subtitle {{
             font-size: 1.4rem !important; color: #64748b !important; font-weight: 500 !important; letter-spacing: -0.5px !important;
-            margin: -15px auto 2.5rem auto !important; padding: 0px !important; text-align: center;
-        }
-        .landing-text { color: #475569; font-size: 1.15rem; line-height: 1.8; text-align: justify; text-align-last: center; margin-bottom: 3rem; }
-        h4.select-title { color: #0f172a; font-size: 1.2rem; margin-bottom: 12px; margin-top: 1rem; text-align: center; font-weight: 600; font-family: system-ui, -apple-system, sans-serif; }
-        div[data-baseweb="select"] * { font-size: 1.15rem !important; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+            margin: {margem_subtitulo} auto 2.5rem auto !important; 
+            padding: 0px !important; text-align: center;
+        }}
+        
+        .landing-text {{ color: #475569; font-size: 1.15rem; line-height: 1.8; text-align: justify; text-align-last: center; margin-bottom: 3rem; }}
+        h4.select-title {{ color: #0f172a; font-size: 1.2rem; margin-bottom: 12px; margin-top: 1rem; text-align: center; font-weight: 600; font-family: system-ui, -apple-system, sans-serif; }}
+        div[data-baseweb="select"] * {{ font-size: 1.15rem !important; }}
+        @keyframes pulse {{ 0% {{ box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }} 70% {{ box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }} 100% {{ box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }} }}
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-<h1 class="landing-title">Análise de Debates Parlamentares</h1>
-<p class="landing-subtitle">Dinâmicas do Parlamento Português | Debates do Estado da Nação</p>
-<div class="landing-text">
-    Plataforma interativa baseada na investigação científica <a href="https://aclanthology.org/2026.propor-1.37/" target="_blank" style="color: #3B82F6; text-decoration: none; font-weight: 600;"><i>"Analyzing Debate Dynamics in the Portuguese Parliament with Dialogue Action Flows"</i></a>. 
-    Esta ferramenta ultrapassa a análise textual tradicional ao integrar intervenções verbais e ações não-verbais 
-    (como aplausos e protestos) numa representação probabilística unificada. <b>Explore a polarização, 
-    os padrões de alinhamento e as trajetórias comportamentais dominantes das diferentes forças políticas.</b>
-</div>
-<h4 class="select-title">Selecione o ano a explorar:</h4>
-""", unsafe_allow_html=True)
+    st.markdown(f"""
+    <h1 class="landing-title">{txt['landing_titulo']}</h1>
+    <p class="landing-subtitle">{txt['landing_subtitulo']}</p>
+    <div class="landing-text">
+        {txt['landing_desc']}
+    </div>
+    <h4 class="select-title">{txt['landing_select']}</h4>
+    """, unsafe_allow_html=True)
     
     ano_escolhido = st.selectbox("Ano", list(FICHEIROS_ANO.keys()), index=list(FICHEIROS_ANO.keys()).index(st.session_state.ano_temp), label_visibility="collapsed")
-    if st.button("Iniciar Exploração", type="primary", use_container_width=True):
+    
+    if st.button(txt['landing_btn'], type="primary", use_container_width=True):
         st.session_state.ano_temp = ano_escolhido
         st.session_state.explorar = True
         st.rerun()
@@ -199,11 +223,12 @@ if not st.session_state.explorar:
 # PÁGINA APÓS A PÁGINA INICIAL
 else:
     # --- BARRA LATERAL ---
-    st.sidebar.markdown("### Contexto Temporal")
+    # --- BARRA LATERAL ---
+    st.sidebar.markdown(f"### {txt['sidebar_contexto']}")
     
     # 1. ESCOLHA DO ANO
     index_ano_atual = list(FICHEIROS_ANO.keys()).index(st.session_state.ano_temp)
-    ano_selecionado = st.sidebar.selectbox("Escolha o Ano do Debate:", list(FICHEIROS_ANO.keys()), index=index_ano_atual)
+    ano_selecionado = st.sidebar.selectbox(txt['sidebar_escolha_ano'], list(FICHEIROS_ANO.keys()), index=index_ano_atual)
     
     # Se o utilizador mudar de ano enquanto está no modo global, sai do modo global automaticamente
     if ano_selecionado != st.session_state.ano_temp:
@@ -214,7 +239,7 @@ else:
     st.sidebar.markdown("<br>", unsafe_allow_html=True)
     
     # 2. O BOTÃO COM A COMPARAÇÃO DOS ANOS
-    texto_botao = "Voltar ao Ano Individual" if st.session_state.ver_global else "Comparação ao Longo dos Anos"
+    texto_botao = txt['sidebar_btn_individual'] if st.session_state.ver_global else txt['sidebar_btn_comparacao']
     if st.sidebar.button(texto_botao, use_container_width=True, type="primary" if not st.session_state.ver_global else "secondary"):
         st.session_state.ver_global = not st.session_state.ver_global
         st.rerun()
@@ -222,27 +247,26 @@ else:
     st.sidebar.markdown("<br><hr style='border-top: 1px solid #e2e8f0;'><br>", unsafe_allow_html=True)
     
     # 3. BOTÃO DE VOLTAR AO INÍCIO
-    if st.sidebar.button("Voltar ao Início", type="secondary", use_container_width=True):
+    if st.sidebar.button(txt['btn_voltar_inicio'], type="secondary", use_container_width=True):
         st.session_state.explorar = False
         st.rerun()
 
     st.sidebar.markdown("<br>" * 6, unsafe_allow_html=True)
     
     # Texto do rodapé com link para a página do parlamento
-    st.sidebar.markdown("""
+    st.sidebar.markdown(f"""
         <div style='text-align: center; padding: 15px 10px 5px 10px; border-top: 1px solid #e2e8f0;'>
-            <p style='color: #94a3b8; font-size: 0.75rem; font-weight: 600; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px;'>Fonte dos Dados</p>
+            <p style='color: #94a3b8; font-size: 0.75rem; font-weight: 600; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px;'>{txt['sidebar_fonte_titulo']}</p>
             <a href='https://www.parlamento.pt/DAR/Paginas/DAR1Serie.aspx' target='_blank' style='color: #64748b; font-size: 0.8rem; text-decoration: none; font-weight: 500;'>
-                Diário da Assembleia da República (I Série)
+                {txt['sidebar_fonte_desc']}
             </a>
         </div>
     """, unsafe_allow_html=True)
 
-    # --- CABEÇALHO ---
     st.markdown(f"""
-<h1 class="main-title">Análise de Debates Parlamentares {'(2021 - 2026)' if st.session_state.ver_global else f'({st.session_state.ano_temp})'}</h1>
-<p style="color: #64748b; font-size: 1.1rem; margin-top: 5px; margin-bottom: 2rem;">Dinâmicas do Parlamento Português | Debates do Estado da Nação</p>
-""", unsafe_allow_html=True)
+    <h1 class="landing-title">{txt['titulo_app']}</h1>
+    <p class="landing-subtitle">{txt['subtitulo']} </p>
+    """, unsafe_allow_html=True)
 
     ficheiro_a_carregar = FICHEIROS_ANO[ano_selecionado]
 
@@ -300,27 +324,56 @@ else:
                     df.loc[mask_acao, col_ato] = df.loc[mask_acao, 'acao_agrupada']
             df.loc[df[col_ato] == 'Ações', col_ato] = 'Ação: Outros'
 
+        if lang == 'EN':
+            # Traduz os valores dentro da coluna de comportamento
+            if col_ato in df.columns:
+                df[col_ato] = df[col_ato].replace({
+                    'Cooperação': 'Cooperation',
+                    'Conflito': 'Conflict',
+                    'Ação: Aplausos': 'Action: Applause',
+                    'Ação: Protestos': 'Action: Protests',
+                    'Ação: Outros': 'Action: Others'
+                })
+                    
+                # E atualizas as variáveis que usas para filtrar/ordens
+            categorias_validas = ["Cooperation", "Conflict", "Action: Applause", "Action: Protests", "Action: Others"]
+        else:
+            categorias_validas = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
+
         # Funções de Filtros
+        # Funções de Filtros (Substitui as que tens por estas)
         def atualizar_filtro_tab1():
             selecionados = st.session_state["filtro_oradores_tab1"]
-            if "Todos" in selecionados and len(selecionados) > 1:
-                if selecionados[-1] == "Todos": st.session_state["filtro_oradores_tab1"] = ["Todos"]
-                else: st.session_state["filtro_oradores_tab1"] = [s for s in selecionados if s != "Todos"]
+            if any(x in selecionados for x in ["Todos", "All"]) and len(selecionados) > 1:
+                if selecionados[-1] in ["Todos", "All"]: 
+                    st.session_state["filtro_oradores_tab1"] = [selecionados[-1]]
+                else: 
+                    st.session_state["filtro_oradores_tab1"] = [s for s in selecionados if s not in ["Todos", "All"]]
 
         def atualizar_filtro_tab3():
             selecionados = st.session_state["filtro_oradores_tab3"]
-            if "Todos" in selecionados and len(selecionados) > 1:
-                if selecionados[-1] == "Todos": st.session_state["filtro_oradores_tab3"] = ["Todos"]
-                else: st.session_state["filtro_oradores_tab3"] = [s for s in selecionados if s != "Todos"]
+            if any(x in selecionados for x in ["Todos", "All"]) and len(selecionados) > 1:
+                if selecionados[-1] in ["Todos", "All"]: 
+                    st.session_state["filtro_oradores_tab3"] = [selecionados[-1]]
+                else: 
+                    st.session_state["filtro_oradores_tab3"] = [s for s in selecionados if s not in ["Todos", "All"]]
 
-        # MAPA DE CORES CUSTOMIZADO
-        mapa_cores = {
-            "Cooperação": "#10b981",      # Verde Esmeralda
-            "Conflito": "#ef4444",        # Vermelho Forte
-            "Ação: Aplausos": "#3B82F6",  # Laranja
-            "Ação: Protestos": "#c084fc", # Roxo
-            "Ação: Outros": "#94a3b8"     # Cinzento
-        }
+        if lang == 'EN':
+            mapa_cores = {
+                "Cooperation": "#10b981",      # Verde Esmeralda
+                "Conflict": "#ef4444",         # Vermelho Forte
+                "Action: Applause": "#3B82F6", # Laranja (Azul no teu hex original)
+                "Action: Protests": "#c084fc", # Roxo
+                "Action: Others": "#94a3b8"    # Cinzento
+            }
+        else:
+            mapa_cores = {
+                "Cooperação": "#10b981",
+                "Conflito": "#ef4444",
+                "Ação: Aplausos": "#3B82F6",
+                "Ação: Protestos": "#c084fc",
+                "Ação: Outros": "#94a3b8"
+            }
 
         # DECISÃO DE NAVEGAÇÃO: MODO GLOBAL vs MODO INDIVIDUAL
         if st.session_state.ver_global:
@@ -351,9 +404,8 @@ else:
             if not df_global.empty:
                 col_g1, col_g2 = st.columns(2)
                 with col_g1:
-                    st.markdown("<h5 style='text-align: center; color: #0f172a;'>Total de Intervenções por Ano</h5>", unsafe_allow_html=True)
+                    st.markdown(f"<h5 style='text-align: center; color: #0f172a;'>{txt['global_tit_intervencoes']}</h5>", unsafe_allow_html=True)
                     
-                    # Criamos um gradiente do azul mais claro (2021) ao azul mais escuro (2026)
                     tons_de_azul = ['#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8']
                     
                     fig_anos = px.histogram(
@@ -361,73 +413,59 @@ else:
                         x='Ano_Debate', 
                         color='Ano_Debate', 
                         template="plotly_white",
-                        color_discrete_sequence=tons_de_azul # Aplica as intensidades diferentes
+                        color_discrete_sequence=tons_de_azul
                     )
-                    fig_anos.update_layout(showlegend=False, xaxis={'title': 'Ano'}, yaxis={'title': 'Total de Intervenções'})
+                    fig_anos.update_layout(showlegend=False, xaxis={'title': txt['eixo_x_ano']}, yaxis={'title': txt['eixo_x_int']})
                     
                     fig_anos.update_traces(
-                        hovertemplate="<b>Ano:</b> %{x}<br><b>Contagem:</b> %{y} intervenções<extra></extra>"
+                        hovertemplate=f"<b>{txt['eixo_x_ano']}:</b> %{{x}}<br><b>{txt['eixo_y_contagem']}:</b> %{{y}} {txt['hover_intervencoes']}<extra></extra>"
                     )
                     
                     st.plotly_chart(fig_anos, use_container_width=True)
                     
                     # BOTÃO: MAIS MÉTRICAS (Volume e Duração)
-                    with st.expander("Mais Métricas (Volume e Duração)"):
+                    with st.expander(txt['expander_volume']):
                         df_tabela = df_global.copy()
                         if 'Tipo' in df_tabela.columns:
                             mask_acao_tab = df_tabela['Tipo'].astype(str).str.strip().str.lower() == 'ação'
-                            df_tabela['Categoria_Tabela'] = '#Falas'
-                            df_tabela.loc[mask_acao_tab, 'Categoria_Tabela'] = '#Ações'
+                            df_tabela['Categoria_Tabela'] = txt['col_falas']
+                            df_tabela.loc[mask_acao_tab, 'Categoria_Tabela'] = txt['col_acoes']
                         else:
-                            df_tabela['Categoria_Tabela'] = '#Falas'
+                            df_tabela['Categoria_Tabela'] = txt['col_falas']
                             
                         tabela_stats = df_tabela.groupby(['Ano_Debate', 'Categoria_Tabela']).size().unstack(fill_value=0)
                         
-                        if '#Falas' not in tabela_stats: tabela_stats['#Falas'] = 0
-                        if '#Ações' not in tabela_stats: tabela_stats['#Ações'] = 0
+                        if txt['col_falas'] not in tabela_stats: tabela_stats[txt['col_falas']] = 0
+                        if txt['col_acoes'] not in tabela_stats: tabela_stats[txt['col_acoes']] = 0
 
                         valores_manuais = {
-                            '2021': {'#Diálogos': 1, 'Duração': '4h21'},
-                            '2022': {'#Diálogos': 3, 'Duração': '4h48'},
-                            '2023': {'#Diálogos': 6, 'Duração': '4h22'},
-                            '2024': {'#Diálogos': 11, 'Duração': '5h16'},
-                            '2025': {'#Diálogos': 12, 'Duração': '5h01'},
-                            '2026': {'#Diálogos': 7, 'Duração': '4h49'}
+                            '2021': {txt['col_dialogos']: 1, txt['col_duracao']: '4h21'},
+                            '2022': {txt['col_dialogos']: 3, txt['col_duracao']: '4h48'},
+                            '2023': {txt['col_dialogos']: 6, txt['col_duracao']: '4h22'},
+                            '2024': {txt['col_dialogos']: 11, txt['col_duracao']: '5h16'},
+                            '2025': {txt['col_dialogos']: 12, txt['col_duracao']: '5h01'},
+                            '2026': {txt['col_dialogos']: 7, txt['col_duracao']: '4h49'}
                         }
                         
                         df_manuais = pd.DataFrame.from_dict(valores_manuais, orient='index')
                         
                         if not tabela_stats.empty:
                             tabela_final = tabela_stats.join(df_manuais)
-                            tabela_final.index.name = 'Ano'
+                            tabela_final.index.name = txt['eixo_x_ano']
                             tabela_final = tabela_final.reset_index()
                             
                             st.dataframe(
-                                tabela_final[['Ano', '#Falas', '#Ações', '#Diálogos', 'Duração']], 
+                                tabela_final[[txt['eixo_x_ano'], txt['col_falas'], txt['col_acoes'], txt['col_dialogos'], txt['col_duracao']]], 
                                 use_container_width=True, 
-                                hide_index=True,
-                                column_config={
-                                    "#Falas": st.column_config.NumberColumn(
-                                        help="Número total de falas"
-                                    ),
-                                    "#Ações": st.column_config.NumberColumn(
-                                        help="Número total de ações (como aplausos e protestos)"
-                                    ),
-                                    "#Diálogos": st.column_config.NumberColumn(
-                                        help="Número total de blocos de debate ou temas principais discutidos na sessão.\n\nConta um novo sempre que há uma pausa no debate"
-                                    ),
-                                    "Duração": st.column_config.TextColumn(
-                                        help="Tempo total de duração do debate"
-                                    )
-                                }
+                                hide_index=True
                             )
                     
                 with col_g2:
-                    st.markdown("<h5 style='text-align: center; color: #0f172a;'>Comportamento Global por Ano</h5>", unsafe_allow_html=True)
+                    st.markdown(f"<h5 style='text-align: center; color: #0f172a;'>{txt['global_tit_comportamento']}</h5>", unsafe_allow_html=True)
                     col_ato_global = 'speech_act_gerado' if 'speech_act_gerado' in df_global.columns else ('trueLabel' if 'trueLabel' in df_global.columns else None)
                     
                     if col_ato_global:
-                        # As ações que não forem protetsos ou aplausos são "Ação: Outros"
+                        # (O teu código de substituição para 'Ação: Outros' que já está correto continua aqui...)
                         df_global[col_ato_global] = df_global[col_ato_global].astype(str).replace(
                             ['nan', 'NaN', 'None', 'none', '', ' ', 'FALHA_CLASSIFICACAO', 'Outros'], 'Ação: Outros'
                         )
@@ -448,11 +486,16 @@ else:
                             
                         df_global.loc[df_global[col_ato_global] == 'Ações', col_ato_global] = 'Ação: Outros'
 
-                        categorias_validas = [
-                            "Cooperação", "Conflito", 
-                            "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"
-                        ]
-                        
+                        if lang == 'EN':
+                            df_global[col_ato_global] = df_global[col_ato_global].replace({
+                                'Cooperação': 'Cooperation', 'Conflito': 'Conflict',
+                                'Ação: Aplausos': 'Action: Applause', 'Ação: Protestos': 'Action: Protests',
+                                'Ação: Outros': 'Action: Others'
+                            })
+                            categorias_validas = ["Cooperation", "Conflict", "Action: Applause", "Action: Protests", "Action: Others"]
+                        else:
+                            categorias_validas = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
+
                         df_grafico = df_global[df_global[col_ato_global].isin(categorias_validas)]
 
                         fig_comp = px.histogram(
@@ -461,71 +504,76 @@ else:
                             color=col_ato_global, 
                             barmode='group', 
                             template="plotly_white",
-                            color_discrete_map=mapa_cores, # <--- ESTAVA AQUI O ERRO! (Dizia sequence)
+                            color_discrete_map=mapa_cores,
                             category_orders={col_ato_global: categorias_validas}
                         )
                         
-                        fig_comp.update_layout(xaxis={'title': 'Ano'}, yaxis={'title': 'Contagem'}, legend_title_text='Comportamento')
+                        fig_comp.update_layout(xaxis={'title': txt['eixo_x_ano']}, yaxis={'title': txt['eixo_y_contagem']}, legend_title_text=txt['legenda_comp'])
                         
                         fig_comp.update_traces(
-                            hovertemplate="<b>Ano:</b> %{x}<br><b>Comportamento:</b> %{data.name}<br><b>Contagem:</b> %{y}<extra></extra>"
+                            hovertemplate=f"<b>{txt['eixo_x_ano']}:</b> %{{x}}<br><b>{txt['legenda_comp']}:</b> %{{data.name}}<br><b>{txt['eixo_y_contagem']}:</b> %{{y}}<extra></extra>"
                         )
                         
                         st.plotly_chart(fig_comp, use_container_width=True)
                         
-                        # MAIS MÉTRICAS (RÁCIOS) 
-                        with st.expander("Mais Métricas (Rácios de Tensão)"):
+                        # MAIS MÉTRICAS (RÁCIOS) - COM CORREÇÃO DOS ZEROS!
+                        with st.expander(txt['expander_racios']):
                             if col_ato_global: 
                                 tabela_comp = df_global.groupby(['Ano_Debate', col_ato_global]).size().unstack(fill_value=0)
                                 
-                                for col in ['Cooperação', 'Conflito', 'Ação: Aplausos', 'Ação: Protestos']:
+                                # ---> AQUI CORRIGIMOS OS ZEROS PROCURANDO PELA LÍNGUA CERTA <---
+                                if lang == 'EN':
+                                    chaves_racio = ['Cooperation', 'Conflict', 'Action: Applause', 'Action: Protests']
+                                    mapa_nomes_racio = {'Cooperation': '#Coop', 'Conflict': '#Conf', 'Action: Applause': '#App', 'Action: Protests': '#Prot'}
+                                else:
+                                    chaves_racio = ['Cooperação', 'Conflito', 'Ação: Aplausos', 'Ação: Protestos']
+                                    mapa_nomes_racio = {'Cooperação': '#Coop', 'Conflito': '#Conf', 'Ação: Aplausos': '#App', 'Ação: Protestos': '#Prot'}
+
+                                for col in chaves_racio:
                                     if col not in tabela_comp.columns:
                                         tabela_comp[col] = 0
                                         
-                                tabela_comp = tabela_comp.rename(columns={
-                                    'Cooperação': '#Coop', 'Conflito': '#Conf',
-                                    'Ação: Aplausos': '#App', 'Ação: Protestos': '#Prot'
-                                })
+                                tabela_comp = tabela_comp.rename(columns=mapa_nomes_racio)
                                 
                                 tabela_comp['Conf Ratio'] = (tabela_comp['#Conf'] / (tabela_comp['#Conf'] + tabela_comp['#Coop'])).fillna(0).round(2)
                                 tabela_comp['Prot Ratio'] = (tabela_comp['#Prot'] / (tabela_comp['#Prot'] + tabela_comp['#App'])).fillna(0).round(2)
                                 
                                 tabela_comp = tabela_comp.reset_index()
-                                tabela_comp = tabela_comp.rename(columns={'Ano_Debate': 'Ano'})
+                                tabela_comp = tabela_comp.rename(columns={'Ano_Debate': txt['eixo_x_ano']})
                                 
                                 st.dataframe(
-                                    tabela_comp[['Ano', '#Coop', '#Conf', 'Conf Ratio', '#App', '#Prot', 'Prot Ratio']], 
+                                    tabela_comp[[txt['eixo_x_ano'], '#Coop', '#Conf', 'Conf Ratio', '#App', '#Prot', 'Prot Ratio']], 
                                     use_container_width=True, 
                                     hide_index=True,
                                     column_config={
                                         "#Coop": st.column_config.NumberColumn(
-                                            help="Número total de interações verbais de Cooperação"
+                                            help=txt['help_coop']
                                         ),
                                         "#Conf": st.column_config.NumberColumn(
-                                            help="Número total de interações verbais de Conflito"
+                                            help=txt['help_conf']
                                         ),
                                         "Conf Ratio": st.column_config.NumberColumn(
-                                            help="Rácio de Conflito\n\nMede a percentagem de conflito face ao total de falas.\n\nFórmula: #Conf / (#Conf + #Coop)"
+                                            help=txt['help_conf_ratio']
                                         ),
                                         "#App": st.column_config.NumberColumn(
-                                            help="Número total de aplausos"
+                                            help=txt['help_app']
                                         ),
                                         "#Prot": st.column_config.NumberColumn(
-                                            help="Número total de protestos"
+                                            help=txt['help_prot']
                                         ),
                                         "Prot Ratio": st.column_config.NumberColumn(
-                                            help="Rácio de Protestos\n\nMede a percentagem de protestos face ao total de ações de protesto ou aplauso\n\nFórmula: #Prot / (#Prot + #App)"
+                                            help=txt['help_prot_ratio']
                                         )
                                     }
                                 )
 
                 # RÁCIO DE CONFLITO POR PARTIDO (HEATMAP)
+                # RÁCIO DE CONFLITO POR PARTIDO (HEATMAP)
                 st.markdown("<br><hr style='border-top: 1px solid #e2e8f0; margin: 40px 0;'><br>", unsafe_allow_html=True)
-                st.markdown("<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>Rácios de Conflito por Entidade Política</h4>", unsafe_allow_html=True)
-                st.markdown("""
+                st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>{txt['racios_heatmap_tit']}</h4>", unsafe_allow_html=True)
+                st.markdown(f"""
                     <p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 25px;'>
-                    A escala de cores indica a prevalência de conflito, variando de verde (cooperação) a vermelho (conflito). 
-                    O símbolo '-' denota ausência de participação no debate.
+                    {txt['racios_heatmap_sub']}
                     </p>
                 """, unsafe_allow_html=True)
                 
@@ -544,23 +592,32 @@ else:
                     df_ratio['Partido_Heatmap'] = df_ratio['Speaker'].apply(padronizar_partido)
                     df_ratio = df_ratio[df_ratio['Partido_Heatmap'] != 'OUTROS'] # Excluir ruído
                     
-                    # Contar Cooperação e Conflito por Partido e Ano
+                    # Definir as chaves consoante o idioma
+                    if lang == 'EN':
+                        nome_coop = 'Cooperation'
+                        nome_conf = 'Conflict'
+                    else:
+                        nome_coop = 'Cooperação'
+                        nome_conf = 'Conflito'
+
+                    # Contar as métricas por Partido e Ano
                     tabela_partidos = df_ratio.groupby(['Ano_Debate', 'Partido_Heatmap', col_ato_global]).size().unstack(fill_value=0)
-                    
-                    for col in ['Cooperação', 'Conflito']:
-                        if col not in tabela_partidos.columns: tabela_partidos[col] = 0
-                            
+
+                    for col in [nome_coop, nome_conf]:
+                        if col not in tabela_partidos.columns: 
+                            tabela_partidos[col] = 0
+                                
                     tabela_partidos = tabela_partidos.reset_index()
-                    
-                    # Calcular o rácio
-                    tabela_partidos['Total_Polar'] = tabela_partidos['Conflito'] + tabela_partidos['Cooperação']
+
+                    # Calcular o rácio usando as chaves dinâmicas
+                    tabela_partidos['Total_Polar'] = tabela_partidos[nome_conf] + tabela_partidos[nome_coop]
                     tabela_partidos['Conf_Ratio'] = tabela_partidos.apply(
-                        lambda row: round(row['Conflito'] / row['Total_Polar'], 1) if row['Total_Polar'] > 0 else float('nan'), axis=1
+                        lambda row: round(row[nome_conf] / row['Total_Polar'], 1) if row['Total_Polar'] > 0 else float('nan'), axis=1
                     )
                     
                     # Transformar numa matriz
                     tabela_pivot = tabela_partidos.pivot(index='Ano_Debate', columns='Partido_Heatmap', values='Conf_Ratio')
-                    tabela_pivot.index.name = 'Ano'
+                    tabela_pivot.index.name = txt['eixo_x_ano']
                     
                     # Ordenar as colunas
                     ordem_colunas = ['BE', 'PCP', 'PEV', 'L', 'PS', 'PAN', 'JPP', 'GOV', 'IL', 'PSD', 'CDS', 'CH', 'P']
@@ -578,7 +635,6 @@ else:
                         v = float(val)
                         hue = int((1.0 - v) * 150) 
                         
-                        # Fixamos a Saturação nos 84% e a Luminosidade nos 55% para igualar a intensidade do Plotly
                         return f'background-color: hsl({hue}, 84%, 55%); color: #0f172a; text-align: center; font-weight: 700;'
                         
                     try:
@@ -594,14 +650,24 @@ else:
                 #IMAGEM DA EVOLUÇÃO (COM ZOOM)
                 # ==========================================
                 st.markdown("<br><hr style='border-top: 1px solid #e2e8f0; margin: 40px 0;'><br>", unsafe_allow_html=True)
-                st.markdown("<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>Evolução anual da atividade parlamentar por entidade política</h4>", unsafe_allow_html=True)
-                st.markdown("<p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 25px;'>Análise do volume de falas e ações ao longo das várias sessões legislativas.</p>", unsafe_allow_html=True)
+                st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>{txt['evolucao_tit']}</h4>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 25px;'>{txt['evolucao_sub']}</p>", unsafe_allow_html=True)
 
-                # Procurar o ficheiro (tenta .png primeiro, depois .jpg)
+                # Procurar o ficheiro dinamicamente consoante o idioma
                 pasta_imagens = "analise_parlamento"
-                nome_base = "evolucao_grafico_HORIZONTAL_PT"
+                
+                if lang == 'EN':
+                    nome_base = "evolucao_grafico_HORIZONTAL_EN"
+                else:
+                    nome_base = "evolucao_grafico_HORIZONTAL_PT"
+                    
                 caminho_evolucao = os.path.join(pasta_imagens, f"{nome_base}.png")
                 
+                # Fallback: Se estiver em Inglês e a imagem EN não existir, carrega a PT
+                if lang == 'EN' and not os.path.exists(caminho_evolucao) and not os.path.exists(os.path.join(pasta_imagens, f"{nome_base}.jpg")):
+                    nome_base = "evolucao_grafico_HORIZONTAL_PT"
+                    caminho_evolucao = os.path.join(pasta_imagens, f"{nome_base}.png")
+
                 if not os.path.exists(caminho_evolucao):
                     caminho_evolucao = os.path.join(pasta_imagens, f"{nome_base}.jpg")
 
@@ -665,8 +731,9 @@ else:
         # MODO INDIVIDUAL (ANO ESPECÍFICO)
         else:
             # Cria as abas UMA ÚNICA VEZ
-            tab1, tab2, tab3 = st.tabs(["Análise Estatística", "Fluxo", "Explorador de Dados"])
-            
+            #tab1, tab2, tab3 = st.tabs(["Análise Estatística", "Fluxo", "Explorador de Dados"])
+            tab1, tab2, tab3 = st.tabs([txt['tab_estatistica'], txt['tab_fluxo'], txt['tab_dados']])
+
             # ABA 1: ESTATÍSTICA
             with tab1:
                 if 'Speaker' in df.columns:
@@ -681,24 +748,21 @@ else:
                     oradores_reais = [s for s in df['Speaker_Filtro'].unique() if not str(s).startswith("Ações")]
                     oradores_originais = sorted(oradores_reais)
                     
-                    opcoes_filtro = ["Todos"] + oradores_originais
+                    opcoes_filtro = [txt['opcao_todos']] + oradores_originais
                     
                     c_filtro, c_check = st.columns([3, 1])
                     with c_filtro:
-                        oradores_tab1 = st.multiselect("Filtrar Oradores:", options=opcoes_filtro, default=["Todos"], key="filtro_oradores_tab1", on_change=atualizar_filtro_tab1)
+                        oradores_tab1 = st.multiselect(txt['filtrar_oradores'], options=opcoes_filtro, default=[txt['opcao_todos']], key="filtro_oradores_tab1", on_change=atualizar_filtro_tab1)
                     with c_check:
-                        st.markdown("""
-                            <div style='margin-top: 33px;'></div>
-                            <style>
-                                div[data-testid="stCheckbox"] div[data-baseweb="checkbox"] div[data-checked="true"] { background-color: #3B82F6 !important; border-color: #3B82F6 !important; }
-                            </style>
-                        """, unsafe_allow_html=True)
-                        mostrar_acoes_tab1 = st.checkbox("Incluir Ações Não-Verbais", value=True, key="check_acoes_tab1")
-                    
-                    mask_acoes = (df['Tipo'] == 'ação') | df['Speaker_Filtro'].astype(str).str.startswith("Ação")
-                    if col_ato: mask_acoes = mask_acoes | df[col_ato].astype(str).str.startswith("Ação")
-                    
-                    if "Todos" in oradores_tab1 or not oradores_tab1: 
+                        st.markdown("""<div style='margin-top: 33px;'></div><style>div[data-testid="stCheckbox"] div[data-baseweb="checkbox"] div[data-checked="true"] { background-color: #3B82F6 !important; border-color: #3B82F6 !important; }</style>""", unsafe_allow_html=True)
+                        mostrar_acoes_tab1 = st.checkbox(txt['incluir_acoes'], value=True, key="check_acoes_tab1")
+
+                    mask_acoes = (df['Tipo'] == 'ação') | df['Speaker_Filtro'].astype(str).str.startswith(("Ação", "Ações", "Action"))
+                    if col_ato: 
+                        mask_acoes = mask_acoes | df[col_ato].astype(str).str.startswith(("Ação", "Action"))
+
+                    # Lógica de filtragem (ABA 1)
+                    if len(oradores_tab1) == 0 or any(x in oradores_tab1 for x in ["Todos", "All"]): 
                         mask_oradores = pd.Series(True, index=df.index)
                     else: 
                         # 1. Usar a coluna original para não perder quem fez a ação
@@ -715,27 +779,36 @@ else:
 
                 # KPIs
                 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-                kpi1.metric("Total de Registos", len(df_filtrado_tab1))
-                if 'Speaker' in df.columns: kpi2.metric("Entidades Distintas", df_filtrado_tab1['Speaker_Filtro'].nunique())
+                kpi1.metric(txt['kpi_registos'], len(df_filtrado_tab1))
+                if 'Speaker' in df.columns: kpi2.metric(txt['kpi_entidades'], df_filtrado_tab1['Speaker_Filtro'].nunique())
                 if col_ato:
-                    total_coop = len(df_filtrado_tab1[df_filtrado_tab1[col_ato].isin(['Cooperação', 'Ação: Aplausos'])])
-                    total_conf = len(df_filtrado_tab1[df_filtrado_tab1[col_ato].isin(['Conflito', 'Ação: Protestos'])])
-                    kpi3.metric("Total de Cooperação", total_coop)
-                    kpi4.metric("Total de Conflito", total_conf)
+                    if lang == 'EN':
+                        total_coop = len(df_filtrado_tab1[df_filtrado_tab1[col_ato].isin(['Cooperation', 'Action: Applause'])])
+                        total_conf = len(df_filtrado_tab1[df_filtrado_tab1[col_ato].isin(['Conflict', 'Action: Protests'])])
+                    else:
+                        total_coop = len(df_filtrado_tab1[df_filtrado_tab1[col_ato].isin(['Cooperação', 'Ação: Aplausos'])])
+                        total_conf = len(df_filtrado_tab1[df_filtrado_tab1[col_ato].isin(['Conflito', 'Ação: Protestos'])])
+                    
+                    kpi3.metric(txt['kpi_coop'], total_coop)
+                    kpi4.metric(txt['kpi_conf'], total_conf)
 
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_graf1, col_graf2 = st.columns(2)
                 
                 # Gráfico de Barras
+                # Gráfico de Barras
                 with col_graf1:
-                    st.markdown("<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.3rem; margin-bottom: 20px;'>Falas por Orador</h4>", unsafe_allow_html=True)
+                    st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.3rem; margin-bottom: 20px;'>{txt['graf_barras_tit']}</h4>", unsafe_allow_html=True)
                     if 'Speaker' in df.columns:
-                        df_barras = df_filtrado_tab1[~df_filtrado_tab1['Speaker_Filtro'].astype(str).str.startswith(("Ação", "Ações"))]
+                        df_barras = df_filtrado_tab1[~df_filtrado_tab1['Speaker_Filtro'].astype(str).str.startswith(("Ação", "Ações", "Action"))]
                         
                         if col_ato:
-                            ordem_legenda = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
+                            # A ordem da legenda tem de acompanhar a língua
+                            if lang == 'EN':
+                                ordem_legenda = ["Cooperation", "Conflict", "Action: Applause", "Action: Protests", "Action: Others"]
+                            else:
+                                ordem_legenda = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
                             
-                            # Criar o histograma colorido pelo comportamento
                             fig_bar = px.histogram(
                                 df_barras, 
                                 y='Speaker_Filtro', 
@@ -743,18 +816,19 @@ else:
                                 orientation='h',
                                 barmode='stack', 
                                 template="plotly_white", 
-                                color_discrete_map=mapa_cores, # <--- Corrigido para MAP
+                                color_discrete_map=mapa_cores,
                                 category_orders={col_ato: ordem_legenda}
                             )
                             
                             fig_bar.update_layout(
                                 showlegend=False, 
-                                yaxis={'categoryorder':'total ascending', 'title': 'Orador'}, 
-                                xaxis={'title': 'Total de Intervenções'}
+                                yaxis={'categoryorder':'total ascending', 'title': txt['eixo_y_orador']}, 
+                                xaxis={'title': txt['eixo_x_int']}
                             )
                             
+                            # Atualizar o hover com o dicionário e escapar as chavetas do Plotly
                             fig_bar.update_traces(
-                                hovertemplate="<b>Orador:</b> %{y}<br><b>%{data.name}:</b> %{x} intervenções<extra></extra>"
+                                hovertemplate=f"<b>{txt['hover_orador']}:</b> %{{y}}<br><b>%{{data.name}}:</b> %{{x}} {txt['hover_intervencoes']}<extra></extra>"
                             )
                             
                             st.plotly_chart(fig_bar, use_container_width=True)
@@ -763,25 +837,31 @@ else:
 
                 # Gráfico Circular
                 with col_graf2:
-                    st.markdown("<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.3rem; margin-bottom: 20px;'>Comportamento (Verbal e Não-Verbal)</h4>", unsafe_allow_html=True)
+                    st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.3rem; margin-bottom: 20px;'>{txt['graf_pie_tit']}</h4>", unsafe_allow_html=True)
                     if col_ato:
-                        ordem_legenda = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
                         fig_pie = px.pie(
                             df_filtrado_tab1, 
                             names=col_ato, 
                             color=col_ato, 
                             hole=0.4, 
                             template="plotly_white", 
-                            color_discrete_map=mapa_cores, # <--- Corrigido para MAP
-                            category_orders={col_ato: ordem_legenda}
+                            color_discrete_map=mapa_cores,
+                            category_orders={col_ato: ordem_legenda} # Usa a ordem definida acima
                         )
-                        fig_pie.update_traces(textposition='auto', textinfo='percent', hovertemplate="<b>%{label}</b><br>Percentagem: %{percent}<br>Intervenções: %{value}<extra></extra>")
+                        
+                        # Atualizar o hover do gráfico circular
+                        fig_pie.update_traces(
+                            textposition='auto', 
+                            textinfo='percent', 
+                            hovertemplate=f"<b>%{{label}}</b><br>{txt['hover_perc']}: %{{percent}}<br>{txt['hover_int_cap']}: %{{value}}<extra></extra>"
+                        )
+                        
                         st.plotly_chart(fig_pie, use_container_width=True)
 
                 # CRONOLOGIA DE TENSÃO
                 st.markdown("<br><hr style='border-top: 1px solid #e2e8f0; margin: 30px 0;'><br>", unsafe_allow_html=True)
-                st.markdown("<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>Cronologia de Comportamento</h4>", unsafe_allow_html=True)
-                st.markdown("<p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 25px;'>Evolução das interações (do início ao fim do debate).</p>", unsafe_allow_html=True)
+                st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>{txt['cronologia_tit']}</h4>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 25px;'>{txt['cronologia_sub']}</p>", unsafe_allow_html=True)
                 
                 if col_ato:
                     df_cronologia = df_filtrado_tab1.reset_index(drop=True).copy()
@@ -796,15 +876,18 @@ else:
                     
                     # Garantir que o gráfico respeita a ordem cronológica e não a alfabética
                     ordem_das_fases = df_cronologia['Fase_Debate'].unique().tolist()
-                    ordem_legenda = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
+                    if lang == 'EN':
+                        ordem_legenda = ["Cooperation", "Conflict", "Action: Applause", "Action: Protests", "Action: Others"]
+                    else:
+                        ordem_legenda = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
                     
-                    # GERAR O GRÁFICO (agrupado pelas nossas fatias de 50)
+                    # GERAR O GRÁFICO (agrupado pelas fatias de 50)
                     fig_timeline = px.histogram(
                         df_cronologia, 
                         x='Fase_Debate', 
                         color=col_ato, 
                         template="plotly_white",
-                        color_discrete_map=mapa_cores, # <--- AQUI ESTÁ O SEGREDO!
+                        color_discrete_map=mapa_cores,
                         category_orders={
                             col_ato: ordem_legenda,
                             'Fase_Debate': ordem_das_fases
@@ -813,43 +896,52 @@ else:
                     
                     fig_timeline.update_layout(
                         xaxis={
-                            'title': 'Progresso do Debate (Fatias de 50 Intervenções)', 
+                            'title': txt['eixo_x_cron'],
                             'showgrid': False,
-                            'showticklabels': False # Escondemos os números no eixo para ficar super limpo (vê-se no rato)
+                            'showticklabels': False 
                         }, 
-                        yaxis={'title': 'Volume de Interações'},
-                        legend_title_text='Comportamento',
+                        yaxis={'title': txt['eixo_y_cron']},
+                        legend_title_text=txt['legenda_comp'],
                         barmode='stack',
                         bargap=0.05,
                         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1) 
                     )
                     
+                    # Atualizar o hover com as chavetas escapadas %{{...}}
                     fig_timeline.update_traces(
-                        hovertemplate="<b>Fase:</b> Intervenções %{x}<br><b>%{data.name}:</b> %{y} registos<extra></extra>"
+                        hovertemplate=f"<b>{txt['hover_fase']}:</b> {txt['hover_int_cap']} %{{x}}<br><b>%{{data.name}}:</b> %{{y}} {txt['hover_registos']}<extra></extra>"
                     )
                     
                     st.plotly_chart(fig_timeline, use_container_width=True)
                 else:
                     st.warning("Não foi possível gerar a cronologia.")
-
                 # Matriz de Reação (Heatmap)
                 st.markdown("<br><hr style='border-top: 1px solid #e2e8f0; margin: 40px 0;'><br>", unsafe_allow_html=True)
-                st.markdown("<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>Matriz de Reação</h4>", unsafe_allow_html=True)
+                st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>{txt['matriz_tit']}</h4>", unsafe_allow_html=True)
                 st.markdown(f"""
                 <p style='text-align: center; color: #475569; font-size: 1.05rem; max-width: 900px; margin: 0 auto 20px auto; line-height: 1.6;'>
-                    Matriz de Reações dos diferentes partidos no debate de <b>{ano_selecionado}</b>. 
-                    As linhas representam os oradores e as colunas, os que reagiram. 
-                    As cores indicam a valência da interação: 
-                    <span style='color: #047857; font-weight: 600;'>verde (Aplausos, 1.0)</span>, 
-                    <span style='color: #b91c1c; font-weight: 600;'>vermelho (Protestos, −1.0)</span> e 
-                    <span style='color: #ca8a04; font-weight: 600;'>amarelo (Neutro/Sem reação, 0.0)</span>.
+                    {txt['matriz_desc_1']}<b>{ano_selecionado}</b>{txt['matriz_desc_2']}
+                    <span style='color: #047857; font-weight: 600;'>{txt['matriz_verde']}</span>, 
+                    <span style='color: #b91c1c; font-weight: 600;'>{txt['matriz_vermelho']}</span>{txt['matriz_e']}
+                    <span style='color: #ca8a04; font-weight: 600;'>{txt['matriz_amarelo']}</span>.
                 </p>
                 """, unsafe_allow_html=True)
                 
-                nome_heatmap = f"heatmap_indice_POLARIZACAO_{ano_selecionado}.png"
+                # --- Lógica para tentar carregar a imagem em Inglês (se existir) ---
                 pasta_imagens = "analise_parlamento"
+                
+                if lang == 'EN':
+                    nome_heatmap = f"heatmap_indice_POLARIZACAO_EN_{ano_selecionado}.png"
+                else:
+                    nome_heatmap = f"heatmap_indice_POLARIZACAO_{ano_selecionado}.png"
+                
                 caminho_completo = os.path.join(pasta_imagens, nome_heatmap)
                 
+                # Fallback: Se estiver em Inglês mas a imagem _EN.png ainda não existir na pasta, mostra a versão PT original para não dar erro
+                if lang == 'EN' and not os.path.exists(caminho_completo):
+                    caminho_completo = os.path.join(pasta_imagens, f"heatmap_indice_POLARIZACAO_{ano_selecionado}.png")
+                # -----------------------------------------------------------------
+
                 if not os.path.exists(caminho_completo) and os.path.exists(nome_heatmap):
                     caminho_completo = nome_heatmap
                     
@@ -857,6 +949,8 @@ else:
                     import base64
                     with open(caminho_completo, "rb") as img_file:
                         img_base64 = base64.b64encode(img_file.read()).decode()
+                    
+                    # (O resto do teu código HTML com os botões de zoom e javascript continua aqui para baixo...)
                     
                     html_zoom = f"""
                     <div style="display: flex; justify-content: center; width: 100%;">
@@ -908,8 +1002,8 @@ else:
 
                 # TOP 10 TEMAS DO ANO
                 st.markdown("<br><hr style='border-top: 1px solid #e2e8f0; margin: 30px 0;'><br>", unsafe_allow_html=True)
-                st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>Top Temas do Debate ({ano_selecionado})</h4>", unsafe_allow_html=True)
-                st.markdown("<p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 25px;'>Palavras-chave mais frequentes extraídas das intervenções.</p>", unsafe_allow_html=True)
+                st.markdown(f"<h4 style='text-align: center; color: #0f172a; font-weight: 700; font-size: 1.4rem; margin-bottom: 5px;'>{txt['top_temas_tit']} ({ano_selecionado})</h4>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 25px;'>{txt['top_temas_sub']}</p>", unsafe_allow_html=True)
 
                 if 'Utterance' in df_filtrado_tab1.columns:
                     import re
@@ -957,22 +1051,23 @@ else:
                             text='Frequência',
                             template="plotly_white",
                             color='Frequência',
-                            color_continuous_scale='Tealgrn' # Ou 'Blues' mas com contraste forte
+                            color_continuous_scale='Tealgrn'
                         )
                         
                         fig_temas.update_layout(
-                            xaxis={'title': 'Número de Menções', 'showgrid': True, 'gridcolor': '#f1f5f9'},
+                            xaxis={'title': txt['eixo_x_mencoes'], 'showgrid': True, 'gridcolor': '#f1f5f9'}, # <-- Alterado aqui
                             yaxis={'title': '', 'tickfont': {'size': 13, 'color': '#0f172a', 'family': 'sans-serif'}},
                             margin=dict(t=10, b=10, l=10, r=20),
                             height=420,
-                            coloraxis_showscale=False # Esconde a barra lateral desnecessária
+                            coloraxis_showscale=False
                         )
                         
                         fig_temas.update_traces(
                             texttemplate='%{text}',
                             textposition='outside',
                             textfont=dict(size=12, color='#334155', family='sans-serif'),
-                            marker=dict(line=dict(width=0))
+                            marker=dict(line=dict(width=0)),
+                            hovertemplate=f"<b>{txt['hover_tema']}:</b> %{{y}}<br><b>{txt['hover_freq']}:</b> %{{x}}<extra></extra>"
                         )
                         
                         st.plotly_chart(fig_temas, use_container_width=True)
@@ -1282,25 +1377,28 @@ else:
                     oradores_reais = [s for s in df['Speaker_Filtro'].unique() if not str(s).startswith("Ação")]
                     oradores_originais = sorted(oradores_reais)
                     
-                    opcoes_filtro = ["Todos"] + oradores_originais
+                    # 1. Substituir "Todos" pela variável do dicionário
+                    opcoes_filtro = [txt['opcao_todos']] + oradores_originais
                     
                     c_filtro, c_check = st.columns([3, 1])
                     with c_filtro:
-                        oradores_tab3 = st.multiselect("Filtrar Oradores:", options=opcoes_filtro, default=["Todos"], key="filtro_oradores_tab3", on_change=atualizar_filtro_tab3)
+                        # 2. Substituir o título e o valor default
+                        oradores_tab3 = st.multiselect(txt['filtrar_oradores'], options=opcoes_filtro, default=[txt['opcao_todos']], key="filtro_oradores_tab3", on_change=atualizar_filtro_tab3)
                     with c_check:
                         st.markdown("""<div style='margin-top: 33px;'></div><style>div[data-testid="stCheckbox"] div[data-baseweb="checkbox"] div[data-checked="true"] { background-color: #3B82F6 !important; border-color: #3B82F6 !important; }</style>""", unsafe_allow_html=True)
-                        mostrar_acoes_tab3 = st.checkbox("Incluir Ações da Sessão", value=True, key="check_acoes_tab3")
+                        # 3. Substituir o texto da checkbox
+                        mostrar_acoes_tab3 = st.checkbox(txt['incluir_acoes_sessao'], value=True, key="check_acoes_tab3")
                     
                     mask_acoes = (df['Tipo'] == 'ação') | df['Speaker_Filtro'].astype(str).str.startswith("Ação")
                     if col_ato: mask_acoes = mask_acoes | df[col_ato].astype(str).str.startswith("Ação")
                     
-                    if "Todos" in oradores_tab3 or not oradores_tab3: 
+                    # Lógica de filtragem (ABA 3)
+                    if len(oradores_tab3) == 0 or any(x in oradores_tab3 for x in ["Todos", "All"]): 
                         mask_oradores = pd.Series(True, index=df.index)
                     else: 
-                        # Usamos a coluna original df['Speaker'] para não esquecer quem fez a ação!
                         mask_oradores = df['Speaker'].isin(oradores_tab3)
                     
-                    if "Todos" in oradores_tab3 or not oradores_tab3:
+                    if txt['opcao_todos'] in oradores_tab3 or not oradores_tab3:
                         if mostrar_acoes_tab3:
                             df_filtrado_tab3 = df # Mostra literalmente tudo
                         else:
@@ -1313,10 +1411,16 @@ else:
                             # Mostra APENAS as falas verbais do partido selecionado
                             df_filtrado_tab3 = df[mask_oradores & ~mask_acoes]
 
-                    mapa_colunas = {
-                        'dialogue_id': 'ID do Diálogo', 'turn_id': 'ID do Turno', 'Speaker': 'Orador',
-                        'Utterance': 'Fala', 'Ação': 'Ação', col_ato: 'Comportamento'
-                    }
+                    if lang == 'EN':
+                        mapa_colunas = {
+                            'dialogue_id': 'Dialogue ID', 'turn_id': 'Turn ID', 'Speaker': 'Speaker',
+                            'Utterance': 'Utterance', 'Ação': 'Action', col_ato: 'Behavior'
+                        }
+                    else:
+                        mapa_colunas = {
+                            'dialogue_id': 'ID do Diálogo', 'turn_id': 'ID do Turno', 'Speaker': 'Orador',
+                            'Utterance': 'Fala', 'Ação': 'Ação', col_ato: 'Comportamento'
+                        }
                     
                     colunas_presentes = {k: v for k, v in mapa_colunas.items() if k in df_filtrado_tab3.columns}
                     df_para_mostrar = df_filtrado_tab3[list(colunas_presentes.keys())].rename(columns=colunas_presentes)
