@@ -80,7 +80,9 @@ DICIONARIO = {
         'racios_heatmap_tit': 'Rácios de Conflito por Entidade Política',
         'racios_heatmap_sub': 'A escala de cores indica a prevalência de conflito, variando de verde (cooperação) a vermelho (conflito). O símbolo \'-\' denota ausência de participação no debate.',
         'evolucao_tit': 'Evolução anual da atividade parlamentar por entidade política',
-        'evolucao_sub': 'Análise do volume de falas e ações ao longo das várias sessões legislativas.'
+        'evolucao_sub': 'Análise do volume de falas e ações ao longo das várias sessões legislativas.',
+        'spinner_individual': 'A processar os registos e matrizes do debate...',
+        'spinner_global': 'A analisar os dados dos debates...'
     },
     'EN': {
         'titulo_app': 'Parliamentary Debates Analysis',
@@ -161,6 +163,8 @@ DICIONARIO = {
         'racios_heatmap_tit': 'Conflict Ratios by Political Entity',
         'racios_heatmap_sub': 'The color scale indicates the prevalence of conflict, ranging from green (cooperation) to red (conflict). The symbol \'-\' denotes absence of participation in the debate.',
         'evolucao_tit': 'Annual evolution of parliamentary activity by political entity',
-        'evolucao_sub': 'Analysis of the volume of speeches and actions across various legislative sessions.'
+        'evolucao_sub': 'Analysis of the volume of speeches and actions across various legislative sessions.',
+        'spinner_individual': 'Processing debate records and matrices...',
+        'spinner_global': 'Analyzing debate data...'
     }
 }

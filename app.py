@@ -121,7 +121,8 @@ FICHEIROS_ANO = {
     "2021": "Estado_Da_Nacao_21_julho_2021.xlsx"
 }
 
-@st.cache_data(show_spinner="A processar os registos e matrizes do debate...")
+# Passa a ter show_spinner=False
+@st.cache_data(show_spinner=False)
 def load_data(file_name):
     df = pd.read_excel(file_name)
     return df
@@ -132,6 +133,28 @@ if not st.session_state.explorar:
 
     col_vazia, col_lang = st.columns([8, 2])
     with col_lang:
+        # O seletor correto atualizado (stColumn em vez de column)
+        st.markdown("""
+        <style>
+            div[data-testid="stColumn"]:nth-of-type(2) button {
+                border: 2px solid #3B82F6 !important;
+                border-radius: 30px !important;
+                color: #1E3A8A !important;
+                background-color: #eff6ff !important;
+                font-weight: 700 !important;
+                font-size: 1.1rem !important;
+                box-shadow: 0 4px 6px rgba(59, 130, 246, 0.15) !important;
+                transition: all 0.3s ease !important;
+            }
+            div[data-testid="stColumn"]:nth-of-type(2) button:hover {
+                background-color: #3B82F6 !important;
+                color: white !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 12px rgba(59, 130, 246, 0.25) !important;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+        
         texto_botao_lang = "🇺🇸 English" if lang == 'PT' else "🇵🇹 Português"
         if st.button(texto_botao_lang, use_container_width=True):
             st.session_state.idioma = 'EN' if lang == 'PT' else 'PT'
@@ -271,7 +294,8 @@ else:
     ficheiro_a_carregar = FICHEIROS_ANO[ano_selecionado]
 
     try:
-        df = load_data(ficheiro_a_carregar)
+        with st.spinner(txt['spinner_individual']):
+            df = load_data(ficheiro_a_carregar)
         
         if 'Speaker' in df.columns:
             import re
@@ -378,7 +402,7 @@ else:
         # DECISÃO DE NAVEGAÇÃO: MODO GLOBAL vs MODO INDIVIDUAL
         if st.session_state.ver_global:
             
-            @st.cache_data(show_spinner="A analisar os dados dos debates...")
+            @st.cache_data(show_spinner=False)
             def carregar_todos_os_anos():
                     lista_dfs = []
                     for ano, ficheiro in FICHEIROS_ANO.items():
@@ -399,7 +423,8 @@ else:
                         return df_concat
                     return pd.DataFrame()
 
-            df_global = carregar_todos_os_anos()
+            with st.spinner(txt['spinner_global']):
+                 df_global = carregar_todos_os_anos()
 
             if not df_global.empty:
                 col_g1, col_g2 = st.columns(2)
