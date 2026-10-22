@@ -365,7 +365,6 @@ else:
             categorias_validas = ["Cooperação", "Conflito", "Ação: Aplausos", "Ação: Protestos", "Ação: Outros"]
 
         # Funções de Filtros
-        # Funções de Filtros (Substitui as que tens por estas)
         def atualizar_filtro_tab1():
             selecionados = st.session_state["filtro_oradores_tab1"]
             if any(x in selecionados for x in ["Todos", "All"]) and len(selecionados) > 1:
@@ -1402,16 +1401,16 @@ else:
                     oradores_reais = [s for s in df['Speaker_Filtro'].unique() if not str(s).startswith("Ação")]
                     oradores_originais = sorted(oradores_reais)
                     
-                    # 1. Substituir "Todos" pela variável do dicionário
+                    # Substituir "Todos" pela variável do dicionário
                     opcoes_filtro = [txt['opcao_todos']] + oradores_originais
                     
                     c_filtro, c_check = st.columns([3, 1])
                     with c_filtro:
-                        # 2. Substituir o título e o valor default
+                        # Substituir o título e o valor default
                         oradores_tab3 = st.multiselect(txt['filtrar_oradores'], options=opcoes_filtro, default=[txt['opcao_todos']], key="filtro_oradores_tab3", on_change=atualizar_filtro_tab3)
                     with c_check:
                         st.markdown("""<div style='margin-top: 33px;'></div><style>div[data-testid="stCheckbox"] div[data-baseweb="checkbox"] div[data-checked="true"] { background-color: #3B82F6 !important; border-color: #3B82F6 !important; }</style>""", unsafe_allow_html=True)
-                        # 3. Substituir o texto da checkbox
+                        # Substituir o texto da checkbox
                         mostrar_acoes_tab3 = st.checkbox(txt['incluir_acoes_sessao'], value=True, key="check_acoes_tab3")
                     
                     mask_acoes = (df['Tipo'] == 'ação') | df['Speaker_Filtro'].astype(str).str.startswith("Ação")
@@ -1456,6 +1455,6 @@ else:
                 st.dataframe(df_para_mostrar, use_container_width=True, height=500, hide_index=True)
 
     except FileNotFoundError:
-        st.error(f"O ficheiro '{ficheiro_a_carregar}' não foi encontrado! Verifica se ele está na mesma pasta do teu código.")
+        st.error(f"O ficheiro '{ficheiro_a_carregar}' não foi encontrado!")
     except Exception as e:
         st.error(f"Ocorreu um erro inesperado ao carregar os dados: {e}")
